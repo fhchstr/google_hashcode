@@ -22,8 +22,8 @@ class Vehicle(object):
     def __init__(self, rides=None, row=0, col=0):
         # Starting intersection of the vehicle
         self.start_intersection = hashcode.Intersection(row, col)
-        # Intersection at which the vehicle is available once it drove
-        # all its scheduled rides
+        # Intersection at which the vehicle is available once it will
+        # have driven all its scheduled rides
         self.end_intersection = hashcode.Intersection(row, col)
         # Step at which the vehicle is available to drive a new ride
         self.driving_time = 0
@@ -31,9 +31,9 @@ class Vehicle(object):
         self.scheduled_rides = []
 
         # heap of all the unassigned rides
-        self.available_rides = self.evaluate_rides(rides) if rides else []
+        self.available_rides = self._evaluate_rides(rides) if rides else []
 
-    def evaluate_rides(self, rides):
+    def _evaluate_rides(self, rides):
         """Build the heap of available rides.
 
         This method must be called each time a ride gets assigned to the vehicle.
@@ -81,7 +81,7 @@ class Vehicle(object):
         return investment - reward
 
     def assign_best_next_ride(self):
-        """Assign the ride with the lowest score to this vehicle."""
+        """Assign the ride with the best score to this vehicle."""
         score, ride = self.best_next_ride(pop=True)
 
         if not ride:
@@ -99,7 +99,7 @@ class Vehicle(object):
         self.end_intersection = ride.end_intersection
 
         self.scheduled_rides.append(ride)
-        self.available_rides = self.evaluate_rides([r[1] for r in self.available_rides])
+        self.available_rides = self._evaluate_rides([r[1] for r in self.available_rides])
 
     def best_next_ride(self, pop=False):
         """Return the score and best next ride for this vehicle.
@@ -112,7 +112,7 @@ class Vehicle(object):
             pop: Should the ride be removed from heap? Default: False
 
         Returns:
-            A tuple (score, Ride) or (None, None) if no ride more ride are available.
+            A tuple (score, Ride) or (None, None) if no more ride is available.
         """
         while True:
             if not self.available_rides:
@@ -138,8 +138,8 @@ class Vehicle(object):
         """
         total = 0
 
-        position = self.start_intersection
         step = 0
+        position = self.start_intersection
         for ride in self.scheduled_rides:
             # Transit to the start of the ride
             step += hashcode.distance(position, ride.start_intersection)

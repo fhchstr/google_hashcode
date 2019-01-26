@@ -10,12 +10,13 @@
 #
 import sys
 
-from hashcode import Ride, Scheduler
+import hashcode
+from hashcode import Scheduler
 
 
 def main(data_set):
-    n_vehicles, bonus, simulation_duration = parse_summary(data_set)
-    rides = parse_rides(data_set, bonus, simulation_duration)
+    n_vehicles, bonus, simulation_duration = hashcode.parse_summary(data_set)
+    rides = hashcode.parse_rides(data_set, bonus, simulation_duration)
     scheduler = Scheduler(rides, n_vehicles)
     scheduler.dispatch()
 
@@ -33,54 +34,6 @@ def main(data_set):
     # Print the total score on STDERR to filter it easily from the output
     score = sum([v.points() for v in scheduler.vehicles])
     sys.stderr.write('score: {}\n'.format(score))
-
-
-def parse_summary(data_set):
-    """Parse the first line from the data set and return the values we need to solve
-       the challenge.
-
-    The first line of the input file contains the following integer integer numbers
-    separated by single spaces:
-        - (ignored) number of rows of the grid
-        - (ignored) number of columns of the grid
-        - number of vehicles in the fleet
-        - (ignored) number of rides
-        - per-ride bonus for starting the ride on time
-        - number of steps in the simulation
-    """
-    with open(data_set, 'r') as f:
-        values = [int(v) for v in f.readline().split()]
-        return values[2], values[4], values[5]
-
-
-def parse_rides(data_set, bonus, simulation_duration):
-    """Parse all lines, except the first, from the data set and return a list of Ride
-       instances in the same order as they were read from the file.
-
-    The subsequent lines of the input file describe the individual rides, from ride 0
-    to ride N − 1.  Each line contains the following integer numbers separated by single
-    spaces:
-        - the row of the start intersection
-        - the column of the start intersection
-        - the row of the finish intersection
-        - the column of the finish intersection
-        - the earliest start
-        - the latest finish
-    """
-    keys = ('start_row', 'start_col', 'end_row', 'end_col', 'earliest_start', 'latest_finish')
-    rides = []
-    with open(data_set, 'r') as f:
-        f.readline()  # Skip the first line
-
-        for i, line in enumerate(f):
-            values = [int(v) for v in line.split()]
-            ride_properties = dict(zip(keys, values))
-            ride_properties['identifier'] = i
-            ride_properties['bonus'] = bonus
-            ride_properties['simulation_duration'] = simulation_duration
-            rides.append(Ride(**ride_properties))
-
-    return rides
 
 
 if __name__ == '__main__':

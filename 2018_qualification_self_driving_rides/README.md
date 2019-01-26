@@ -53,7 +53,11 @@ while rides still not assigned:
 ```
 
 ## Result
-Here is how you can run the script for each data set.
+Call `hashcode.py` and pass the input data set as argument to solve the problem: `./hashcode.py path/to/data_set`.
+The data to be submitted is in `STDOUT` and the score rewarded in `STDERR`.
+Just redirect each file descriptor according to your needs.
+
+Here is a loop to run the script for each data set.
 ```bash
 $ mkdir -p output;
 for f in data_sets/*; do \
@@ -63,7 +67,7 @@ for f in data_sets/*; do \
     echo "in $(($SECONDS - $start)) seconds";
 done
 ```
-Here is the output (the files to submit are in the `output/` directory.
+Here is the output (the files to submit are in the `output/` directory).
 ```
 data_sets/a_example.in: score: 10
 in 0 seconds
@@ -77,6 +81,8 @@ data_sets/e_high_bonus.in: score: 20557945
 in 264 seconds
 ```
 Total: **46973178** points which corresponds to rank 530/3012 ([Scoreboard](https://codingcompetitions.withgoogle.com/hashcode/archive/2018)).
+
+To run the unit tests, run `python -m unittest discover -s test`.
 
 ## Improvements
 * The score formula is pretty naive and doesn't prioritize the rides which must be finished early

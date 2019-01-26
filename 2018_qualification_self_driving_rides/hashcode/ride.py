@@ -18,8 +18,16 @@ class Ride(object):
         end_col,
         earliest_start,
         latest_finish,
-        simulation_duration
+        simulation_duration,
     ):
+        non_negative_arguments = (
+            bonus, start_row, start_col, end_row, end_col,
+            earliest_start, latest_finish, simulation_duration
+        )
+        if any([a < 0 for a in non_negative_arguments]):
+            msg = '{} Negative arguments are not allowed'
+            raise ValueError(msg.format(self))
+
         self.identifier = identifier
         self.bonus = bonus
         self.start_intersection = hashcode.Intersection(start_row, start_col)
@@ -28,6 +36,10 @@ class Ride(object):
         self.latest_finish = latest_finish if latest_finish < simulation_duration else simulation_duration
 
         self.distance = hashcode.distance(self.start_intersection, self.end_intersection)
+        if self.distance > self.latest_finish - self.earliest_start:
+            msg = '{} cannot be driven in {} steps'
+            raise ValueError(msg.format(self, self.latest_finish - self.earliest_start))
+
         self.vehicle = None
 
     def __str__(self):
