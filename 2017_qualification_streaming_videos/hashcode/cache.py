@@ -1,5 +1,6 @@
 import math
 
+# FIXME Rename to CacheManager
 class Cache(object):
 
     def __init__(self, videos, cache_servers, endpoints):
@@ -16,8 +17,7 @@ class Cache(object):
         # FIXME should be done
         for cache_server in self.cache_servers:
             _, videos = self.best_videos_for_cache(cache_server)
-            for video in videos:
-                cache_server.add_video(video)
+            cache_server.videos = videos
 # Problem: Triangular number (X * (X + 1)) / 2 repetitions
 #        cache_servers = set(self.cache_servers)
 #
@@ -94,39 +94,72 @@ class Cache(object):
         Given the example above, here is how the resulting table looks like. The best
         value is the one in the bottom right cell. For simplicity, the tracking of
         the videos isn't represented on the table.
-                                   
-                              m | 0 | 1 | 2 | 3 | 4 
-                              --+---+---+---+---+---
-                              0 | 0 | 0 | 0 | 0 | 0 
-                              --+---+---+---+---+---
-                        (v0)  1 | 0 | 0 | 2 | 2 | 2 
-                              --+---+---+---+---+---
-                        (v1)  2 | 0 | 0 | 2 | 2 | 4 
-                              --+---+---+---+---+---
-                        (v2)  3 | 0 | 0 | 2 | 3 | 4 
 
-        FIXME Explain this step-by-step process better
+                     table m    | 0 | 1 | 2 | 3 | 4
+                              --+---+---+---+---+---
+                              0 | 0 | 0 | 0 | 0 | 0
+                              --+---+---+---+---+---
+                        (v0)  1 | 0 | 0 | 2 | 2 | 2
+                              --+---+---+---+---+---
+                        (v1)  2 | 0 | 0 | 2 | 2 | 4
+                              --+---+---+---+---+---
+                        (v2)  3 | 0 | 0 | 2 | 3 | 4
+
+        Here is the step-by-step explanation of the algorithm used to fill the table.
+        The coordinates are written as m(row, column), the best choice is marked with
+        an asterisk at the end of the line.
+
+        FIXME explain what happens if the score is the same.
 
         Column #1
-        m(1, 1): v0 doesn't fit in capacity 1 -> m(0, 1) = 0
-        m(2, 1): v1 doesn't fit in capacity 1 -> m(1, 1) = 0
-        m(3, 1): v2 doesn't fit in capacity 1 -> m(2, 1) = 0
+        m(1, 1): v0 doesn't fit in capacity 1 -> m(0, 1) = 0 (skip*)
+        m(2, 1): v1 doesn't fit in capacity 1 -> m(1, 1) = 0 (skip*)
+        m(3, 1): v2 doesn't fit in capacity 1 -> m(2, 1) = 0 (skip*)
 
         Column #2
-        m(1, 2): v0.value + m(0, 2-v0.size) = m(0, 0) = 2 + 0 = 2 we add it
-        m(2, 2): v1.value + m(1, 2-v1.size) = m(1, 0) = 2 + 0 = 2 either one is good
-        m(3, 2): v2 doesn't fit in capacity 2 -> m(2, 2) = 2
+        m(1, 2): v0 fits it capacity 2. Find the max between:
+            - m(0, 2) = 0                                                 (skip)
+            - v0.value + m(0, 2-v0.size) = v0.value + m(0, 0) = 2 + 0 = 2 (add*)
+        m(2, 2): v1 fits in capacity 2. Find the max between:
+            - m(1, 2) = 2                                                 (skip*) FIXME
+            - v1.value + m(1, 2-v0.size) = v1.value + m(1, 0) = 2 + 0 = 2 (add*)  FIXME
+        m(3, 2): v2 doesn't fit in capacity 2 -> m(2, 2) = 2 (skip*)
 
         Column #3
-        m(1, 3): v0.value + m(0, 3-v0.size) = m(0, 1) = 2 + 0 = 2 we add it
-        m(2, 3): v1.value + m(1, 3-v1.size) = m(1, 1) = 2 + 0 = 2 either one is good
-        m(3, 3): v2.value + m(2, 3-v2.size) = m(2, 0) = 3 + 0 = 3
+        m(1, 3): v0 fits in capacity 3. Find the max between:
+            - m(0, 3) = 0                                                 (skip)
+            - v0.value + m(0, 3-v0.size) = v0.value + m(0, 1) = 2 + 0 = 2 (add*)
+        m(2, 3): v1 fits in capacity 3. Find the max between:
+            - m(1, 3) = 2                                                 (skip*) FIXME
+            - v1.value + m(1, 3-v1.size) = v1.value + m(1, 1) = 2 + 0 = 2 (add*)  FIXME
+        m(3, 3): v2 fits in capacity 3. Find the max between:
+            - m(2, 3) = 2                                                 (skip)
+            - v2.value + m(2, 3-v2.size) = v2.value + m(2, 0) = 3 + 0 = 3 (add*)
 
         Column #4
-        m(1, 4): v0.value + m(0, 4-v0.size) = m(0, 2) = 2 + 0 = 2 we add it 
-        m(2, 4): v1.value + m(1, 4-v1.size) = m(1, 2) = 2 + 2 = 4 we add it
-        m(3, 4): v2.value + m(2, 4-v2.size) = m(2, 1) = 3 is smaller than m(2, 4)
+        m(1, 4): v0 fits in capacity 4. Find the max between:
+            - m(0, 4) = 0                                                 (skip)
+            - v0.value + m(0, 4-v0.size) = v0.value + m(0, 2) = 2 + 0 = 2 (add*)
+        m(2, 4): v1 fits in capacity 4. Find the max between:
+            - m(1, 4) = 2                                                 (skip)
+            - v1.value + m(1, 4-v1.size) = v1.value + m(1, 2) = 2 + 2 = 4 (add*)
+        m(3, 4): v2 fits in capcity 4. Find the max between:
+            - m(2, 4) = 4                                                 (skip*)
+            - v2.value + m(2, 4-v2.size) = v2.value + m(2, 1) = 3 + 0     (add)
 
+        As you might have noticed, only the previous row (index-1) is used to
+        compute the values of the next row. This means we don't need to allocate
+        #videos rows. 2 rows are enough (the previous from which we're reading and
+        the current one in which we're writting). At every iteration, we have to
+        swap the row we're reading from/writting to. Because of that, the values
+        are written in a zigzag shape between the rows 0 and 1.
+
+        This algorithm is good for the basic knacksack algorithm, in which only the
+        value is stored in the table. In our case, we need to be careful because we
+        are writting more than that. Meaning that we need to 
+        FIXME is it really the case? Or is there a bug in my code?
+        FIXME what if the values are equal?
+        
         Args:
             cache_server: CacheServer instance which must be evaluated
 
@@ -134,52 +167,54 @@ class Cache(object):
             the list of videos to store on the cache to save the most time
         """
         # Only look at the videos for which this cache can help saving time
-        videos, time_saved = [], []
+        videos_and_time_saved = []
         for v in self.videos:
             t = cache_server.time_saved(v)
             if t > 0:
-                videos.append(v)
-                time_saved.append(t)
+                videos_and_time_saved.append((v, t))
 
-        # FIXME I tried to reduce the cache and video size by 10 to reduce
-        # FIXME the running time. It helps, but that's not a clean solution
-        div = 10.0 if cache_server.capacity >= 10 else 1.0
-
-        # Build the evaluation table
-        # FIXME it should be possible to allocate a much smaller table
         memo = [
-            [(0, []) for capacity in xrange(int(cache_server.capacity / div) + 1)]
-            for video in xrange(len(videos) + 1)
+            [(0, set()) for capacity in xrange(cache_server.capacity + 1)]
+            for _ in range(2)
         ]
 
-        for capacity in xrange(1, int(cache_server.capacity / div) + 1):
-            for video_index_in_memo in xrange(1, len(videos) + 1):
-                video = videos[video_index_in_memo-1]
-                size = int(math.ceil(video.size / div))
+        for capacity in xrange(1, cache_server.capacity + 1):
+            for video_index_in_memo in xrange(1, len(videos_and_time_saved) + 1):
+                # Alternate the current row for each video
+                current_row = video_index_in_memo % 2
+                previous_row = (video_index_in_memo - 1) % 2
 
-                result_if_skipped = memo[video_index_in_memo-1][capacity]
-                if size > capacity: 
-                    # The video donesn't fit. Skip it and copy the value from the row
-                    # above, which is the result we had before we evaluated this video.
-                    # Since we skipped it, the result doesn't change.
-                    memo[video_index_in_memo][capacity] = result_if_skipped
+                video, time_saved = videos_and_time_saved[video_index_in_memo-1]
+                result_if_skipped = memo[previous_row][capacity]
+
+                if video.size > capacity:
+                    # The video donesn't fit. Skip it and copy the value from the
+                    # other row, which is the result we had before we evaluated this
+                    # video. Since we skipped it, the result doesn't change.
+                    memo[current_row][capacity] = result_if_skipped
                     continue
 
                 # The video fits. Find out what's best between skipping and adding it.
                 # For code readability, retreive the best set of videos (and time saved
                 # by caching them) for capacity = capacity - video.size
-                best_for_smaller_capacity = memo[video_index_in_memo-1][capacity-size]
+                best_for_smaller_capacity = memo[previous_row][capacity - video.size]
                 best_time_saved, best_videos = best_for_smaller_capacity
 
+                # FIXME is this check really necessary? I think so because of the
+                # FIXME 2-rows solution
+                if video in best_videos:
+                    memo[current_row][capacity] = result_if_skipped
+                    continue
+
                 result_if_added = (
-                    best_time_saved + time_saved[video_index_in_memo-1],
-                    best_videos + [video],
+                    best_time_saved + time_saved,
+                    best_videos | set([video]),
                 )
 
-                memo[video_index_in_memo][capacity] = max(
+                memo[current_row][capacity] = max(
                     result_if_added,
                     result_if_skipped,
                 )
 
-        # The best result is in the bottom right corner
-        return memo[-1][-1]
+        # The best result is in the last cell of the last row visited
+        return memo[current_row][-1]

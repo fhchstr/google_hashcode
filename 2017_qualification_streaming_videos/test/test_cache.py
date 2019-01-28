@@ -16,4 +16,4 @@ class TestCache(unittest.TestCase):
     def test_best_videos(self):
         time_saved, videos = self.cache.best_videos_for_cache(self.cache.cache_servers[0])
         self.assertEqual(time_saved, 4)
-        self.assertEqual(videos, self.cache.videos[:2])
+        self.assertEqual(videos, set(self.cache.videos[:2]))

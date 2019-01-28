@@ -1,6 +1,6 @@
 from cacheserver import CacheServer
 from endpoint import Endpoint
-from video import Video
+from hashcode import Video
 
 
 class Parser(object):
@@ -89,7 +89,10 @@ class Parser(object):
                 endpoint = Endpoint(i, data_center_latency)
                 for _ in xrange(n_cache_servers):
                     id_, latency = [int(v) for v in f.readline().split()]
-                    endpoint.add_cache_server(self.cache_servers[id_], latency)
+
+                    cache_server = self.cache_servers[id_]
+                    endpoint.latencies[cache_server] = latency
+                    cache_server.endpoints.append(endpoint)
 
                 yield endpoint
                 n -= 1
@@ -116,4 +119,4 @@ class Parser(object):
                 endpoint = self.endpoints[values[1]]
                 n_requests = values[2]
 
-                endpoint.add_request_description(video, n_requests)
+                endpoint.views[video] = n_requests
