@@ -11,32 +11,17 @@ class Cache(object):
     def distribute_videos(self):
         """Distribute the videos as efficiently as possible among the cache
            servers.
+
+        The cache servers with the best potential latency gain are evaluated first.
         """
-        # FIXME We're not assigning the videos to the best cache here
-        # FIXME see the (unefficient) code commented below to see what
-        # FIXME should be done
-        for cache_server in self.cache_servers:
+        for cache_server in sorted(
+            self.cache_servers,
+            key=lambda s: s.potential_latency_gain(),
+            reverse=True
+        ):
+            start = datetime.datetime.now()
             _, videos = self.best_videos_for_cache(cache_server)
             cache_server.videos = videos
-# Problem: Triangular number (X * (X + 1)) / 2 repetitions
-#        cache_servers = set(self.cache_servers)
-#
-#        while(cache_servers):
-#            best = (0, None, [])
-#
-#            for cache_server in cache_servers:
-#                time_saved, videos = self.best_videos_for_cache(cache_server)
-#                if time_saved > best[0]:
-#                    best = time_saved, cache_server, videos
-#
-#            time_saved, cache_server, videos = best
-#            if time_saved == 0:
-#                break
-#
-#            for video in videos:
-#                cache_server.add_video(video)
-#
-#            cache_servers.remove(cache_server)
 
     def best_videos_for_cache(self, cache_server):
         """Return the most efficient (=bigger time saved) set of videos that can

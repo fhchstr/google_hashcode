@@ -13,6 +13,16 @@ class CacheServer(object):
         """
         return sum([e.time_saved(video, self) for e in self.endpoints])
 
+    def potential_latency_gain(self):
+        """Return the total number of milliseconds potentially saved if the videos
+           watched by the connected endpoints are all hosted on this cache server.
+        """
+        gain = 0
+        for endpoint in self.endpoints:
+            n_requests = sum(endpoint.views.values())
+            gain += n_requests * (endpoint.data_center_latency - endpoint.latencies[self])
+        return gain
+
     def __repr__(self):
         return '{}({})'.format(
             self.__class__.__name__,
