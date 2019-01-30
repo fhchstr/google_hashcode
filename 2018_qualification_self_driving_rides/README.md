@@ -87,7 +87,7 @@ in 264 seconds
 ```
 Total: **46973178** points which corresponds to rank 530/3012 ([Scoreboard](https://codingcompetitions.withgoogle.com/hashcode/archive/2018)).
 
-To run the unit tests, run `python -m unittest discover -s test`.
+To run the unit tests, run `python -m unittest discover`.
 
 ## Improvements
 * The score formula is pretty naive and doesn't prioritize the rides which must be finished early
